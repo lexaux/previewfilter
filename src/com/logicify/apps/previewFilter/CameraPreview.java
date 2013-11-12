@@ -2,6 +2,7 @@ package com.logicify.apps.previewFilter;
 
 import android.content.Context;
 import android.hardware.Camera;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * Camera preview class.
  */
-public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback
 {
     private SurfaceHolder mHolder;
     private Camera mCamera;
@@ -67,9 +68,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // set preview size and make any resize, rotate or
         // reformatting changes here
         Camera.Parameters mParams = mCamera.getParameters();
-        List<Camera.Size> previewSizes = mParams.getSupportedPreviewSizes();
-        Camera.Size previewSize = previewSizes.get(previewSizes.size() - 1);
-        mParams.setPreviewSize(previewSize.width, previewSize.height);
+
+        Camera.Size bestSize = getBestPreviewSizeToScreen(mParams.getSupportedPreviewSizes());
+
+        mParams.setPreviewSize(bestSize.width, bestSize.height);
+        mCamera.setPreviewCallback(this);
         mCamera.setParameters(mParams);
 
         // start preview with new settings
@@ -81,6 +84,47 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         {
             Log.e(Util.TAG, "Error starting camera preview: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Method tries to determine the most appropriate preview size for the current screen size. Since we'll be occupying
+     * the whole device screen, we firstly search for exact pixel-match. If there isn't one, we search for the one with
+     * the same ratio.
+     *
+     * @param sizes camera-supported preview sizes
+     * @return the best-fit size
+     */
+    private Camera.Size getBestPreviewSizeToScreen(List<Camera.Size> sizes)
+    {
+        DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
+
+        //try to get screen-exact preview size
+        Camera.Size bestSize = null;
+        for (Camera.Size size : sizes)
+        {
+            if (size.width == metrics.widthPixels && size.height == metrics.heightPixels)
+            {
+                bestSize = size;
+            }
+        }
+        // if not, just the first with the right ratio
+        if (bestSize == null)
+        {
+            float ratio = metrics.heightPixels / metrics.widthPixels;
+            for (Camera.Size size : sizes)
+            {
+                float sizeRatio = size.height / size.width;
+                if (Math.abs(sizeRatio - ratio) > 0.001)
+                {
+                    bestSize = size;
+                }
+            }
+        }
+        if (bestSize == null)
+        {
+            bestSize = sizes.get(0);
+        }
+        return bestSize;
     }
 
     @Override
@@ -95,5 +139,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mCamera = null;
     }
 
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera)
+    {
+        // do nothing for now
+    }
 }
 

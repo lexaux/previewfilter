@@ -20,7 +20,10 @@ import java.util.List;
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback, TextureView.SurfaceTextureListener
 {
-    public static final int DEFAULT_CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
+	
+	private static final String TAG = "CameraPreview";
+
+	public static final int DEFAULT_CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
     private SurfaceHolder mHolder;
     private Camera mCamera;
 
@@ -148,28 +151,39 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         Camera.Size bestSize = null;
         for (Camera.Size size : sizes)
         {
-            if (size.width == metrics.widthPixels && size.height == metrics.heightPixels)
-            {
-                bestSize = size;
-            }
+        	Log.d(TAG, "Trying preview size " + size.width + "x" +size.height);
+        	
+			if (size.width == metrics.widthPixels && size.height == metrics.heightPixels) {
+				bestSize = size;
+				break;
+			}
         }
+        
         // if not, just the first with the right ratio
         if (bestSize == null)
         {
-            float ratio = metrics.heightPixels / metrics.widthPixels;
+        	Log.d(TAG, "best size == null; Using ratio to determine correct one");        	
+            float ratio = (float)metrics.heightPixels / (float)metrics.widthPixels;
+            Log.d(TAG, "Screen ratio = " + ratio);            
             for (Camera.Size size : sizes)
             {
-                float sizeRatio = size.height / size.width;
-                if (Math.abs(sizeRatio - ratio) > 0.001)
+                float sizeRatio = (float)size.height / (float)size.width;
+                Log.d(TAG, "Current size " + size.width + "x" +size.height + ", ratio = " + sizeRatio);
+                if (Math.abs(sizeRatio - ratio) > 0.001f)
                 {
                     bestSize = size;
+                    break;
                 }
             }
         }
+        
         if (bestSize == null)
         {
             bestSize = sizes.get(0);
         }
+        
+        Log.d(TAG, "Best size " + bestSize.width + "x" +bestSize.height);
+        
         return bestSize;
     }
 

@@ -28,10 +28,17 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private int[] previewBuffer;
     private TextureView internalTextureView;
 
+    private volatile boolean drawingSurfaceReady = false;
+    private volatile boolean receivingSurfaceTextureReady = false;
+
+    private int width;
+    private int height;
+
     public CameraPreview(Context context, TextureView internalTextureView)
     {
         super(context); // Always necessary
         this.internalTextureView = internalTextureView;
+
         internalTextureView.setSurfaceTextureListener(this);
 
         mHolder = getHolder();
@@ -45,8 +52,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         synchronized (this)
         {
             this.setWillNotDraw(false);
+            this.drawingSurfaceReady = true;
+            mCamera = Camera.open();
         }
-
     }
 
     @Override
@@ -61,34 +69,40 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             return;
         }
 
-        // stop preview before making changes
-//        try
-//        {
-//            mCamera.stopPreview();
-//        } catch (Exception e)
-//        {
-//            // ignore: tried to stop a non-existent preview
-//        }
+        this.width = width;
+        this.height = height;
+        tryStartPreview();
+    }
 
+    private void tryStartPreview()
+    {
+        if (!(drawingSurfaceReady && receivingSurfaceTextureReady))
+        {
+            Log.i(Util.TAG, "Not starting preview, either texture or surface not yet ready");
+        }
         // set preview size and make any resize, rotate or
         // reformatting changes here
-//
-//        this.previewSize = bestSize;
-//
-//        mParams.setPreviewSize(bestSize.width, bestSize.height);
-//        mCamera.setPreviewCallback(this);
-//        mCamera.setParameters(mParams);
-//
-//        // start preview with new settings
-//        try
-//        {
-//            mCamera.setPreviewDisplay(mHolder);
-//            mCamera.startPreview();
-//
-//        } catch (Exception e)
-//        {
-//            Log.e(Util.TAG, "Error starting camera preview: " + e.getMessage(), e);
-//        }
+        try
+        {
+            mCamera.stopPreview();
+
+            Camera.Parameters mParams = mCamera.getParameters();
+            Camera.Size bestSize = getBestPreviewSizeToScreen(mParams.getSupportedPreviewSizes());
+
+            this.previewSizePixels = bestSize.width * bestSize.height;
+            this.previewBuffer = new int[this.previewSizePixels + 1];
+
+            mParams.setPreviewSize(bestSize.width, bestSize.height);
+            mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            mCamera.setParameters(mParams);
+
+            mCamera.setPreviewTexture(internalTextureView.getSurfaceTexture());
+            mCamera.setPreviewCallback(this);
+            mCamera.startPreview();
+        } catch (IOException ioe)
+        {
+            // Something bad happened
+        }
     }
 
     /**
@@ -135,18 +149,17 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     @Override
     public void surfaceDestroyed(SurfaceHolder holder)
     {
-//        synchronized (this)
-//        {
-//            if (null == mCamera)
-//            {
-//                return;
-//            }
-//            mCamera.stopPreview();
-//            mCamera.setPreviewCallback(null);
-//
-//            mCamera.release();
-//            mCamera = null;
-//        }
+        synchronized (this)
+        {
+            if (null == mCamera)
+            {
+                return;
+            }
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mCamera.release();
+            mCamera = null;
+        }
     }
 
     @Override
@@ -204,34 +217,15 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         for (int i = 0; i < size; i++)
         {
             p = data[i] & 0xFF;
-            pixels[i] = 0xff000000 | p << 16;//p << 8;// | p;
+            pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
         }
     }
 
     // Surface texture details.
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
     {
-        mCamera = Camera.open();
         internalTextureView.setVisibility(View.INVISIBLE);
-
-        try
-        {
-            Camera.Parameters mParams = mCamera.getParameters();
-            Camera.Size bestSize = getBestPreviewSizeToScreen(mParams.getSupportedPreviewSizes());
-
-            this.previewSizePixels = width * height;
-            this.previewBuffer = new int[this.previewSizePixels];
-
-            mParams.setPreviewSize(bestSize.width, bestSize.height);
-            mCamera.setParameters(mParams);
-
-            mCamera.setPreviewTexture(surface);
-            mCamera.setPreviewCallback(this);
-            mCamera.startPreview();
-        } catch (IOException ioe)
-        {
-            // Something bad happened
-        }
+        tryStartPreview();
     }
 
 
@@ -244,9 +238,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface)
     {
-        mCamera.setPreviewCallback(null);
-        mCamera.stopPreview();
-        mCamera.release();
         return true;
     }
 

@@ -20,6 +20,7 @@ import java.util.List;
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback, TextureView.SurfaceTextureListener
 {
+    public static final int DEFAULT_CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
     private SurfaceHolder mHolder;
     private Camera mCamera;
 
@@ -53,7 +54,26 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         {
             this.setWillNotDraw(false);
             this.drawingSurfaceReady = true;
-            mCamera = Camera.open();
+            openRearCamera();
+        }
+    }
+
+    private void openRearCamera()
+    {
+        int numberOfCameras = Camera.getNumberOfCameras();
+        for (int i = 0; i < numberOfCameras; i++)
+        {
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Camera.getCameraInfo(i, info);
+            if (info.facing == DEFAULT_CAMERA_FACING)
+            {
+                mCamera = Camera.open(i);
+            }
+        }
+
+        if (mCamera == null)
+        {
+            mCamera = Camera.open(0);
         }
     }
 
@@ -93,7 +113,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             this.previewBuffer = new int[this.previewSizePixels + 1];
 
             mParams.setPreviewSize(bestSize.width, bestSize.height);
-            mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            List<String> focusModes = mParams.getSupportedFocusModes();
+            if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
+            {
+                mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO))
+            {
+                mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            }
             mCamera.setParameters(mParams);
 
             mCamera.setPreviewTexture(internalTextureView.getSurfaceTexture());

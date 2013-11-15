@@ -20,8 +20,6 @@ import java.util.List;
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback, TextureView.SurfaceTextureListener {
 
-    private static final String TAG = "CameraPreview";
-
     public static final int DEFAULT_CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
     private SurfaceHolder mHolder;
     private Camera mCamera;
@@ -33,9 +31,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     private volatile boolean drawingSurfaceReady = false;
     private volatile boolean receivingSurfaceTextureReady = false;
-
-    private int width;
-    private int height;
 
     public CameraPreview(Context context, TextureView internalTextureView) {
         super(context); // Always necessary
@@ -81,9 +76,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             // preview surface does not exist
             return;
         }
-
-        this.width = width;
-        this.height = height;
         tryStartPreview();
     }
 
@@ -133,7 +125,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         //try to get screen-exact preview size
         Camera.Size bestSize = null;
         for (Camera.Size size : sizes) {
-            Log.d(TAG, "Trying preview size " + size.width + "x" + size.height);
+            Log.d(Util.TAG, "Trying preview size " + size.width + "x" + size.height);
 
             if (size.width == metrics.widthPixels && size.height == metrics.heightPixels) {
                 bestSize = size;
@@ -143,12 +135,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         // if not, just the first with the right ratio
         if (bestSize == null) {
-            Log.d(TAG, "best size == null; Using ratio to determine correct one");
+            Log.d(Util.TAG, "best size == null; Using ratio to determine correct one");
             float ratio = (float) metrics.heightPixels / (float) metrics.widthPixels;
-            Log.d(TAG, "Screen ratio = " + ratio);
+            Log.d(Util.TAG, "Screen ratio = " + ratio);
             for (Camera.Size size : sizes) {
                 float sizeRatio = (float) size.height / (float) size.width;
-                Log.d(TAG, "Current size " + size.width + "x" + size.height + ", ratio = " + sizeRatio);
+                Log.d(Util.TAG, "Current size " + size.width + "x" + size.height + ", ratio = " + sizeRatio);
                 if (Math.abs(sizeRatio - ratio) > 0.001f) {
                     bestSize = size;
                     break;
@@ -160,7 +152,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             bestSize = sizes.get(0);
         }
 
-        Log.d(TAG, "Best size " + bestSize.width + "x" + bestSize.height);
+        Log.d(Util.TAG, "Best size " + bestSize.width + "x" + bestSize.height);
 
         return bestSize;
     }

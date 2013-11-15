@@ -18,12 +18,11 @@ import java.util.List;
 /**
  * Camera preview class.
  */
-public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback, TextureView.SurfaceTextureListener
-{
-	
-	private static final String TAG = "CameraPreview";
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback, TextureView.SurfaceTextureListener {
 
-	public static final int DEFAULT_CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private static final String TAG = "CameraPreview";
+
+    public static final int DEFAULT_CAMERA_FACING = Camera.CameraInfo.CAMERA_FACING_BACK;
     private SurfaceHolder mHolder;
     private Camera mCamera;
 
@@ -38,8 +37,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private int width;
     private int height;
 
-    public CameraPreview(Context context, TextureView internalTextureView)
-    {
+    public CameraPreview(Context context, TextureView internalTextureView) {
         super(context); // Always necessary
         this.internalTextureView = internalTextureView;
 
@@ -51,43 +49,35 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder)
-    {
-        synchronized (this)
-        {
+    public void surfaceCreated(SurfaceHolder holder) {
+        synchronized (this) {
             this.setWillNotDraw(false);
             this.drawingSurfaceReady = true;
             openRearCamera();
         }
     }
 
-    private void openRearCamera()
-    {
+    private void openRearCamera() {
         int numberOfCameras = Camera.getNumberOfCameras();
-        for (int i = 0; i < numberOfCameras; i++)
-        {
+        for (int i = 0; i < numberOfCameras; i++) {
             Camera.CameraInfo info = new Camera.CameraInfo();
             Camera.getCameraInfo(i, info);
-            if (info.facing == DEFAULT_CAMERA_FACING)
-            {
+            if (info.facing == DEFAULT_CAMERA_FACING) {
                 mCamera = Camera.open(i);
             }
         }
 
-        if (mCamera == null)
-        {
+        if (mCamera == null) {
             mCamera = Camera.open(0);
         }
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
-    {
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         // If your preview can change or rotate, take care of those events here.
         // Make sure to stop the preview before resizing or reformatting it.
 
-        if (mHolder.getSurface() == null)
-        {
+        if (mHolder.getSurface() == null) {
             // preview surface does not exist
             return;
         }
@@ -97,16 +87,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         tryStartPreview();
     }
 
-    private void tryStartPreview()
-    {
-        if (!(drawingSurfaceReady && receivingSurfaceTextureReady))
-        {
+    private void tryStartPreview() {
+        if (!(drawingSurfaceReady && receivingSurfaceTextureReady)) {
             Log.i(Util.TAG, "Not starting preview, either texture or surface not yet ready");
         }
         // set preview size and make any resize, rotate or
         // reformatting changes here
-        try
-        {
+        try {
             mCamera.stopPreview();
 
             Camera.Parameters mParams = mCamera.getParameters();
@@ -117,11 +104,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
             mParams.setPreviewSize(bestSize.width, bestSize.height);
             List<String> focusModes = mParams.getSupportedFocusModes();
-            if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
-            {
+            if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
                 mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO))
-            {
+            } else if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
                 mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
             }
             mCamera.setParameters(mParams);
@@ -129,8 +114,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.setPreviewTexture(internalTextureView.getSurfaceTexture());
             mCamera.setPreviewCallback(this);
             mCamera.startPreview();
-        } catch (IOException ioe)
-        {
+        } catch (IOException ioe) {
             // Something bad happened
         }
     }
@@ -143,57 +127,48 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
      * @param sizes camera-supported preview sizes
      * @return the best-fit size
      */
-    private Camera.Size getBestPreviewSizeToScreen(List<Camera.Size> sizes)
-    {
+    private Camera.Size getBestPreviewSizeToScreen(List<Camera.Size> sizes) {
         DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
 
         //try to get screen-exact preview size
         Camera.Size bestSize = null;
-        for (Camera.Size size : sizes)
-        {
-        	Log.d(TAG, "Trying preview size " + size.width + "x" +size.height);
-        	
-			if (size.width == metrics.widthPixels && size.height == metrics.heightPixels) {
-				bestSize = size;
-				break;
-			}
+        for (Camera.Size size : sizes) {
+            Log.d(TAG, "Trying preview size " + size.width + "x" + size.height);
+
+            if (size.width == metrics.widthPixels && size.height == metrics.heightPixels) {
+                bestSize = size;
+                break;
+            }
         }
-        
+
         // if not, just the first with the right ratio
-        if (bestSize == null)
-        {
-        	Log.d(TAG, "best size == null; Using ratio to determine correct one");        	
-            float ratio = (float)metrics.heightPixels / (float)metrics.widthPixels;
-            Log.d(TAG, "Screen ratio = " + ratio);            
-            for (Camera.Size size : sizes)
-            {
-                float sizeRatio = (float)size.height / (float)size.width;
-                Log.d(TAG, "Current size " + size.width + "x" +size.height + ", ratio = " + sizeRatio);
-                if (Math.abs(sizeRatio - ratio) > 0.001f)
-                {
+        if (bestSize == null) {
+            Log.d(TAG, "best size == null; Using ratio to determine correct one");
+            float ratio = (float) metrics.heightPixels / (float) metrics.widthPixels;
+            Log.d(TAG, "Screen ratio = " + ratio);
+            for (Camera.Size size : sizes) {
+                float sizeRatio = (float) size.height / (float) size.width;
+                Log.d(TAG, "Current size " + size.width + "x" + size.height + ", ratio = " + sizeRatio);
+                if (Math.abs(sizeRatio - ratio) > 0.001f) {
                     bestSize = size;
                     break;
                 }
             }
         }
-        
-        if (bestSize == null)
-        {
+
+        if (bestSize == null) {
             bestSize = sizes.get(0);
         }
-        
-        Log.d(TAG, "Best size " + bestSize.width + "x" +bestSize.height);
-        
+
+        Log.d(TAG, "Best size " + bestSize.width + "x" + bestSize.height);
+
         return bestSize;
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder)
-    {
-        synchronized (this)
-        {
-            if (null == mCamera)
-            {
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        synchronized (this) {
+            if (null == mCamera) {
                 return;
             }
             mCamera.stopPreview();
@@ -204,24 +179,19 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     @Override
-    public void onPreviewFrame(byte[] data, Camera camera)
-    {
+    public void onPreviewFrame(byte[] data, Camera camera) {
         Log.d("Camera", "Got a camera frame");
 
         Canvas c = null;
 
-        if (mHolder == null)
-        {
+        if (mHolder == null) {
             return;
         }
 
-        try
-        {
-            synchronized (mHolder)
-            {
+        try {
+            synchronized (mHolder) {
                 c = mHolder.lockCanvas(null);
-                if (c == null)
-                {
+                if (c == null) {
                     return;
                 }
 
@@ -231,13 +201,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
                 Log.d("SOMETHING", "Got Bitmap");
             }
-        } finally
-        {
+        } finally {
             // do this in a finally so that if an exception is thrown
             // during the above, we don't leave the Surface in an
             // inconsistent state
-            if (c != null)
-            {
+            if (c != null) {
                 mHolder.unlockCanvasAndPost(c);
             }
         }
@@ -251,40 +219,34 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
      * @param width  pixels width
      * @param height pixels height
      */
-    public static void applyGrayScale(int[] pixels, byte[] data, int width, int height)
-    {
+    public static void applyGrayScale(int[] pixels, byte[] data, int width, int height) {
         int p;
         int size = width * height;
-        for (int i = 0; i < size; i++)
-        {
+        for (int i = 0; i < size; i++) {
             p = data[i] & 0xFF;
             pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
         }
     }
 
     // Surface texture details.
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
-    {
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         internalTextureView.setVisibility(View.INVISIBLE);
         tryStartPreview();
     }
 
 
     @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height)
-    {
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface)
-    {
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         return true;
     }
 
     @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface)
-    {
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 }

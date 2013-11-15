@@ -5,16 +5,14 @@ import android.os.Bundle;
 import android.view.TextureView;
 import android.widget.FrameLayout;
 
-public class PreviewFilterMain extends Activity
-{
+public class PreviewFilterMain extends Activity {
     /**
      * Called when the activity is first created.
      */
     private TextureView mTextureView;
     private CameraPreview preview;
 
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mTextureView = new TextureView(this);

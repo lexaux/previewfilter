@@ -1,29 +1,53 @@
 package com.logicify.apps.previewFilter;
 
 import android.app.Activity;
+import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.os.Bundle;
-import android.view.TextureView;
-import android.widget.FrameLayout;
+import android.util.Log;
 
-public class PreviewFilterMain extends Activity {
-    /**
-     * Called when the activity is first created.
-     */
-    private TextureView mTextureView;
-    private CameraPreview preview;
+import java.io.IOException;
 
-    protected void onCreate(Bundle savedInstanceState) {
+public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFrameAvailableListener {
+    private Camera mCamera;
+    private MyGLSurfaceView glSurfaceView;
+    private SurfaceTexture surface;
+    MyGL20Renderer renderer;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mTextureView = new TextureView(this);
+        glSurfaceView = new MyGLSurfaceView(this);
+        renderer = glSurfaceView.getRenderer();
 
-        FrameLayout aLayout = new FrameLayout(this);
-        aLayout.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.FILL_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
-        aLayout.addView(mTextureView);
-
-        preview = new CameraPreview(this, mTextureView);
-        aLayout.addView(preview);
-
-        setContentView(aLayout);
+        setContentView(glSurfaceView);
     }
+
+    public void startCamera(int texture) {
+        surface = new SurfaceTexture(texture);
+        surface.setOnFrameAvailableListener(this);
+        renderer.setSurface(surface);
+
+        mCamera = Camera.open();
+
+        try {
+            mCamera.setPreviewTexture(surface);
+            mCamera.startPreview();
+        } catch (IOException ioe) {
+            Log.w("MainActivity", "CAM LAUNCH FAILED");
+        }
+    }
+
+    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        glSurfaceView.requestRender();
+    }
+
+    @Override
+    public void onPause() {
+        mCamera.stopPreview();
+        mCamera.release();
+        System.exit(0);
+    }
+
 }

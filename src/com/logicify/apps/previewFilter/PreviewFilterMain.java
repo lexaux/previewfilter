@@ -66,9 +66,11 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
 
     @Override
     public void onPause() {
-        mCamera.stopPreview();
-        mCamera.release();
-        System.exit(0);
+        if (mCamera != null) {
+            mCamera.stopPreview();
+            mCamera.release();
+            System.exit(0);
+        }
     }
 
 

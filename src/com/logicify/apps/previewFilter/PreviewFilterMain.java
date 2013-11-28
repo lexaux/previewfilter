@@ -37,9 +37,11 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
 
             mCamera = openRearCamera();
             surface.setOnFrameAvailableListener(this);
-            mCameraRunning = false;
 
-            toggleCamera();
+            Camera.Size selectedPreviewSize = tryStartPreview();
+            renderer.setPreviewTextureAspectRatio(selectedPreviewSize.width / selectedPreviewSize.height);
+
+            mCameraRunning = true;
         } catch (Exception e) {
             Log.e("Camera", "Could not open camera, exiting", e);
             Toast.makeText(this, "Could not open the camera, can not proceed further.", Toast.LENGTH_LONG).show();
@@ -74,7 +76,7 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
     }
 
 
-    private void tryStartPreview() throws Exception {
+    private Camera.Size tryStartPreview() throws Exception {
         // set preview size and make any resize, rotate or
         // reformatting changes here
         try {
@@ -95,6 +97,8 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
 
             mCamera.setPreviewTexture(surface);
             mCamera.startPreview();
+
+            return bestSize;
         } catch (IOException ioe) {
             throw new Exception(ioe);
         }

@@ -37,7 +37,13 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer {
 
     public void onSurfaceChanged(GL10 unused, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
+        mDirectVideo.setSurfaceAspectRatio(((float) width / ((float) height)));
     }
+
+    public void setPreviewTextureAspectRatio(float wToH) {
+        mDirectVideo.setPreviewTextureAspectRatio(wToH);
+    }
+
 
     static public int loadShader(int type, String shaderCode) {
         int shader = GLES20.glCreateShader(type);

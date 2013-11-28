@@ -65,6 +65,8 @@ public class DirectVideo {
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     private int texture;
+    private Float previewTextureAspectRatio = null;
+    private Float surfaceAspectRatio = null;
 
     public DirectVideo(int _texture) {
         texture = _texture;
@@ -119,5 +121,21 @@ public class DirectVideo {
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(mPositionHandle);
         GLES20.glDisableVertexAttribArray(mTextureCoordHandle);
+    }
+
+
+    public void setPreviewTextureAspectRatio(float previewTextureAspectRatio) {
+        this.previewTextureAspectRatio = previewTextureAspectRatio;
+        rebuildTransformMatrix();
+    }
+
+    public void setSurfaceAspectRatio(float surfaceAspectRatio) {
+        this.surfaceAspectRatio = surfaceAspectRatio;
+        rebuildTransformMatrix();
+    }
+
+    private void rebuildTransformMatrix() {
+        // TODO #8 in here we should apply Scale transformation to make sure we are retaining the aspect ratio corresponding
+        // to the preview size. http://glslstudio.com/primer/
     }
 }

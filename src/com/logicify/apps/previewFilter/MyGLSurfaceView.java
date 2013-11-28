@@ -29,7 +29,11 @@ public class MyGLSurfaceView extends GLSurfaceView {
 
         if (event.getAction() == MotionEvent.ACTION_UP) {
             Log.d("Motion", "Action UP!");
-            ((PreviewFilterMain) getContext()).toggleCamera();
+            try {
+                ((PreviewFilterMain) getContext()).toggleCamera();
+            } catch (Exception e) {
+                Log.e("Camera", "Could not toggle camera");
+            }
         }
         return true;
     }

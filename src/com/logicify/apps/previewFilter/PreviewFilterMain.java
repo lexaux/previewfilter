@@ -12,6 +12,7 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
     private Camera mCamera;
     private MyGLSurfaceView glSurfaceView;
     private SurfaceTexture surface;
+    private boolean mCameraRunning = false;
     MyGL20Renderer renderer;
 
     @Override
@@ -26,16 +27,33 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
 
     public void startCamera(int texture) {
         surface = new SurfaceTexture(texture);
-        surface.setOnFrameAvailableListener(this);
         renderer.setSurface(surface);
 
         mCamera = Camera.open();
+        surface.setOnFrameAvailableListener(this);
+        mCameraRunning = false;
+        toggleCamera();
+    }
 
-        try {
-            mCamera.setPreviewTexture(surface);
-            mCamera.startPreview();
-        } catch (IOException ioe) {
-            Log.w("MainActivity", "CAM LAUNCH FAILED");
+
+    public void toggleCamera() {
+
+        if (!mCameraRunning) {
+            try {
+                mCamera.setPreviewTexture(surface);
+                mCamera.startPreview();
+                mCameraRunning = true;
+            } catch (IOException ioe) {
+                Log.w("MainActivity", "CAM LAUNCH FAILED");
+            }
+        } else {
+            try {
+                mCamera.setPreviewTexture(null);
+                mCamera.stopPreview();
+                mCameraRunning = false;
+            } catch (IOException ioe) {
+                Log.w("MainActivity", "CAM LAUNCH FAILED");
+            }
         }
     }
 

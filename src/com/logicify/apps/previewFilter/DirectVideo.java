@@ -10,7 +10,7 @@ import java.nio.ShortBuffer;
 
 public class DirectVideo {
 
-    //TODO #5 this should reallllly go to the external mat. E.g. we should see what's the aspect ratio of the current
+    //TODO #8 this should reallllly go to the external mat. E.g. we should see what's the aspect ratio of the current
     // preview (and texture as such), and scale the coordinates appropriately to get the desired results. E.g. aspect
     // ratio should be retained, effectively drawing on the smaller portion of the screen.
     private final String vertexShaderCode =

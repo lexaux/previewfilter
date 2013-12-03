@@ -6,6 +6,7 @@ import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class PreviewFilterMain extends Activity implements SurfaceTexture.OnFram
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         glSurfaceView = new MyGLSurfaceView(this);
         renderer = glSurfaceView.getRenderer();
